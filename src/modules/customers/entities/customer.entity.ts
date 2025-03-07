@@ -9,21 +9,26 @@ import {
   name: 'customers',
 })
 export class Customer {
-  @PrimaryGeneratedColumn()
-  id: number;
-  @Column({
-    unique: true,
+  @PrimaryGeneratedColumn({
+    type: 'int',
   })
-  username: string;
+  id: number;
   @Column()
   password: string;
-  @Column()
+  @Column({
+    nullable: true,
+  })
   first_name: string;
-  @Column()
+  @Column({
+    nullable: true,
+  })
   last_name: string;
   @Column()
   phone_number: string;
-  @Column({ unique: true })
+  @Column({
+    nullable: true,
+    unique: true,
+  })
   email: string;
   @Column({
     default: false,

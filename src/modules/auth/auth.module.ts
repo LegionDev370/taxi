@@ -5,9 +5,19 @@ import { EskizService } from './eskiz.service';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Customer } from '../customers/entities/customer.entity';
+import { Driver } from '../drivers/entities/driver.entity';
+import { RedisService } from './redis.service';
 @Module({
-  imports: [HttpModule],
+  imports: [HttpModule, TypeOrmModule.forFeature([Customer, Driver])],
   controllers: [AuthController],
-  providers: [AuthService, EskizService, ConfigService, JwtService],
+  providers: [
+    AuthService,
+    EskizService,
+    ConfigService,
+    JwtService,
+    RedisService,
+  ],
 })
 export class AuthModule {}
