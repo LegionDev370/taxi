@@ -37,7 +37,7 @@ export class AuthService {
     this.redisService.setOtp(
       createAuthCustomerDto.phone_number,
       otpPassword,
-      25,
+      120,
     );
     this.redisService.setTempUser({
       phone_number: createAuthCustomerDto.phone_number,
@@ -56,7 +56,16 @@ export class AuthService {
     if (!tempUser || !otp) {
       throw new UnauthorizedException('invalid code');
     }
-    if (code !== otp) throw new UnauthorizedException('invalid code');
+    if (code !== otp) {
+      this.redisService.setIncrementKey(phone_number);
+      const attemptCode = await this.redisService.getOtp(
+        `attempts_user:${phone_number}`,
+      );
+      if (+(attemptCode as string) > 5) {
+        throw new UnauthorizedException('to many attempts');
+      }
+      throw new UnauthorizedException('invalid code');
+    }
     const user = JSON.parse(tempUser);
     const customer = await this.customerRepository.save(user);
     const token = await this.jwtService.signAsync(
@@ -69,6 +78,5 @@ export class AuthService {
       token,
     };
   }
-
   registerDriver(createAuthDriverDto: CreateAuthDriverDto) {}
 }

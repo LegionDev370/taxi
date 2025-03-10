@@ -27,6 +27,11 @@ export class RedisService {
     );
   }
 
+  setIncrementKey(phone_number: string) {
+    this.redis.incr(`attempts_user:${phone_number}`);
+    this.redis.expire(`attempts_user:${phone_number}`, 50);
+  }
+
   delOtp(phone_number: string) {
     this.redis.del(`user:${phone_number}`);
   }

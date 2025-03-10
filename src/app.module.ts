@@ -13,6 +13,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { configuration } from './config/configuration';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { MailerModule } from '@nestjs-modules/mailer';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -32,6 +33,19 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
         synchronize: true,
         autoLoadEntities: true,
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      }),
+      inject: [ConfigService],
+    }),
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        transport: {
+          host: configService.get('SMTP_HOST'),
+          auth: {
+            user: configService.get('SMTP_USER'),
+            pass: configService.get('SMTP_PASSWORD'),
+          },
+        },
       }),
       inject: [ConfigService],
     }),
