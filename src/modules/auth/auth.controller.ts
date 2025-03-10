@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   CreateAuthCustomerDto,
@@ -9,15 +9,14 @@ import { LoginAuthDto } from './dto/login.auth.dto';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-
   @Post('customer/register')
+  @HttpCode(200)
   registerCustomer(@Body() createAuthCustomerDto: CreateAuthCustomerDto) {
     return this.authService.registerCustomer(createAuthCustomerDto);
   }
-  @Get('/verify/code')
-  verifyCode(@Req() req: Request) {
-    const code = req.headers['code'];
-    return this.authService.verifyOtpCustomer(code);
+  @Post('/verify/code')
+  verifyCode(@Body() body: { phone_number: string; code: string }) {
+    return this.authService.verifyOtpCustomer(body.phone_number, body.code);
   }
   @Post('driver/register')
   registerDriver(@Body() createAuthDriverDto: CreateAuthDriverDto) {

@@ -13,8 +13,6 @@ import { RedisService } from './redis.service';
 import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class AuthService {
-  customer: any;
-  driver: any;
   constructor(
     private readonly jwtService: JwtService,
     @InjectRepository(Customer)
@@ -30,39 +28,43 @@ export class AuthService {
         phone_number: createAuthCustomerDto.phone_number,
       },
     });
-    if (findCustomer) throw new UnauthorizedException('invalid credentials');
     const hashedPassword = await bcrypt.hash(
       createAuthCustomerDto.password,
       12,
     );
-    const customer = this.customerRepository.create({
-      ...createAuthCustomerDto,
-      password: hashedPassword,
-    });
-    this.customer = customer;
+    if (findCustomer) throw new UnauthorizedException('invalid credentials');
+    const otpPassword = this.redisService.generateOtpPassword();
     this.redisService.setOtp(
-      customer.phone_number,
-      this.redisService.generateOtpPassword(),
+      createAuthCustomerDto.phone_number,
+      otpPassword,
       25,
     );
-    const otp_password = await this.redisService.getOtp(customer.phone_number);
+    this.redisService.setTempUser({
+      phone_number: createAuthCustomerDto.phone_number,
+      password: hashedPassword,
+    });
     return {
-      otp_password,
+      otp: otpPassword,
     };
   }
 
-  async verifyOtpCustomer(code: string) {
-    const otp = await this.redisService.getOtp(`${this.customer.phone_number}`);
-    if (!otp) {
+  async verifyOtpCustomer(phone_number: string, code: string) {
+    const tempUser = await this.redisService.getOtp(
+      `temp_user:${phone_number}`,
+    );
+    const otp = await this.redisService.getOtp(`user:${phone_number}`);
+    if (!tempUser || !otp) {
       throw new UnauthorizedException('invalid code');
     }
     if (code !== otp) throw new UnauthorizedException('invalid code');
-    const customer = await this.customerRepository.save(this.customer);
+    const user = JSON.parse(tempUser);
+    const customer = await this.customerRepository.save(user);
     const token = await this.jwtService.signAsync(
       { user_id: customer.id },
       { expiresIn: '2h', secret: this.configService.get('JWT_SECRET_KEY') },
     );
-    this.customer = null;
+    this.redisService.delOtp(phone_number);
+    this.redisService.delTempUser(phone_number);
     return {
       token,
     };
