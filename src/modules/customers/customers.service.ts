@@ -1,26 +1,27 @@
-import { Injectable } from '@nestjs/common';
-import { CreateCustomerDto } from './dto/create-customer.dto';
-import { UpdateCustomerDto } from './dto/update-customer.dto';
+import { MailerService } from '@nestjs-modules/mailer';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Customer } from './entities/customer.entity';
+import { Repository } from 'typeorm';
+import { RedisService } from '../auth/redis.service';
 
 @Injectable()
 export class CustomersService {
-  create(createCustomerDto: CreateCustomerDto) {
-    return 'This action adds a new customer';
-  }
-
-  findAll() {
-    return `This action returns all customers`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} customer`;
-  }
-
-  update(id: number, updateCustomerDto: UpdateCustomerDto) {
-    return `This action updates a #${id} customer`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} customer`;
+  constructor(
+    private mailService: MailerService,
+    @InjectRepository(Customer)
+    private customerRespository: Repository<Customer>,
+    private redisService: RedisService,
+  ) {}
+  async sendMailVerificationCode(userId: number) {
+    const customer = await this.customerRespository.findOne({
+      where: { id: +userId },
+    });
+    if (!customer?.email) throw new BadRequestException('email invalid');
+    await this.mailService.sendMail({
+      to: `${customer?.email}`,
+      subject: `How to Send Emails with Nodemailer`,
+      text: 'Salom',
+    });
   }
 }

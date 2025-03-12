@@ -14,6 +14,8 @@ import { configuration } from './config/configuration';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { JwtModule } from '@nestjs/jwt';
+import AuthGuard from './common/guards/auth.guard';
 @Module({
   imports: [
     ConfigModule.forRoot({

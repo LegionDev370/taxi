@@ -11,6 +11,7 @@ import {
 } from './dto/create-auth.dto';
 import { RedisService } from './redis.service';
 import { ConfigService } from '@nestjs/config';
+import { Response } from 'express';
 @Injectable()
 export class AuthService {
   constructor(
@@ -77,6 +78,32 @@ export class AuthService {
     return {
       token,
     };
+  }
+  async loginCustomer(phone_number: string, password: string) {
+    try {
+      const findCustomer = await this.customerRepository.findOne({
+        where: {
+          phone_number: phone_number,
+        },
+      });
+      if (!findCustomer) throw new UnauthorizedException('user not found');
+      const comparePassword = await bcrypt.compare(
+        password,
+        findCustomer.password,
+      );
+      if (!comparePassword)
+        throw new UnauthorizedException('phone_number or password incorrect');
+      const token = this.jwtService.sign(
+        { user_id: findCustomer.id },
+        {
+          expiresIn: '1h',
+          secret: this.configService.get('JWT_SECRET_KEY'),
+        },
+      );
+      return { token };
+    } catch (error) {
+      throw new UnauthorizedException(error.message);
+    }
   }
   registerDriver(createAuthDriverDto: CreateAuthDriverDto) {}
 }

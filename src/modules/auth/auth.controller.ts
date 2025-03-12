@@ -1,10 +1,19 @@
-import { Body, Controller, Get, HttpCode, Post, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   CreateAuthCustomerDto,
   CreateAuthDriverDto,
 } from './dto/create-auth.dto';
-import { LoginAuthDto } from './dto/login.auth.dto';
+import { LoginCustomerAuthDto } from './dto/login.auth.dto';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -24,11 +33,23 @@ export class AuthController {
   }
 
   @Post('customer/login')
-  loginCustomer(@Body() createAuthDto: LoginAuthDto) {
-    // return this.authService.create(createAuthDto);
+  @HttpCode(200)
+  async loginCustomer(
+    @Body() loginCustomerAuthDto: LoginCustomerAuthDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { token } = await this.authService.loginCustomer(
+      loginCustomerAuthDto.phone_number,
+      loginCustomerAuthDto.password,
+    );
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: true,
+    });
+    return { token };
   }
-  @Post('driver/login')
-  loginDriver(@Body() createAuthDto: LoginAuthDto) {
-    // return this.authService.create(createAuthDto);
-  }
+  // @Post('driver/login')
+  // loginDriver(@Body() createAuthDto: LoginAuthDto) {
+  //   // return this.authService.create(createAuthDto);
+  // }
 }
