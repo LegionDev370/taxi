@@ -34,12 +34,12 @@ export class AuthService {
     );
     if (findCustomer) throw new UnauthorizedException('invalid credentials');
     const otpPassword = this.redisService.generateOtpPassword();
-    this.redisService.setOtp(
+    await this.redisService.setOtp(
       createAuthCustomerDto.phone_number,
       otpPassword,
       120,
     );
-    this.redisService.setTempUser({
+    await this.redisService.setTempUser({
       phone_number: createAuthCustomerDto.phone_number,
       password: hashedPassword,
     });

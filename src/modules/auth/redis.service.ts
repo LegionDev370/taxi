@@ -9,36 +9,36 @@ export class RedisService {
       port: process.env.REDIS_PORT
         ? parseInt(process.env.REDIS_PORT, 10)
         : 6379,
-      host: 'redis',
-      password: '3322',
+      host: process.env.REDIS_HOST,
+      password: process.env.REDIS_PASSWORD,
     });
   }
-  setOtp(phone_number: string, otp: string, ttl = 30) {
-    this.redis.setex(`user:${phone_number}`, ttl, otp);
+  async setOtp(phone_number: string, otp: string, ttl = 30) {
+    await this.redis.setex(`user:${phone_number}`, ttl, otp);
   }
-  getOtp(key: string) {
-    return this.redis.get(key);
+  async getOtp(key: string) {
+    return await this.redis.get(key);
   }
 
-  setTempUser(user: { phone_number: string; password: string }) {
-    this.redis.setex(
+  async setTempUser(user: { phone_number: string; password: string }) {
+    await this.redis.setex(
       `temp_user:${user.phone_number}`,
       100,
       JSON.stringify(user),
     );
   }
 
-  setIncrementKey(phone_number: string) {
-    this.redis.incr(`attempts_user:${phone_number}`);
-    this.redis.expire(`attempts_user:${phone_number}`, 50);
+  async setIncrementKey(phone_number: string) {
+    await this.redis.incr(`attempts_user:${phone_number}`);
+    await this.redis.expire(`attempts_user:${phone_number}`, 50);
   }
 
-  delOtp(phone_number: string) {
-    this.redis.del(`user:${phone_number}`);
+  async delOtp(phone_number: string) {
+    await this.redis.del(`user:${phone_number}`);
   }
 
-  delTempUser(key: string) {
-    this.redis.del(`temp_user:${key}`);
+  async delTempUser(key: string) {
+    await this.redis.del(`temp_user:${key}`);
   }
 
   generateOtpPassword() {
