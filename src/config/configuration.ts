@@ -5,6 +5,8 @@ export const configuration = () => ({
   DATABASE_PASSWORD: process.env.DATABASE_PASSWORD,
   DATABASE_USERNAME: process.env.DATABASE_USERNAME,
   DATABASE_PORT: process.env.DATABASE_PORT,
+  REDIS_HOST: process.env.REDIS_HOST,
+  REDIS_PORT: process.env.REDIS_PORT,
   JWT_SECRET_KEY: process.env.JWT_SECRET_KEY,
   SMTP_GMAIL: process.env.SMTP_GMAIL,
   SMTP_PORT: process.env.SMTP_PORT,

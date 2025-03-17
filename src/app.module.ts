@@ -1,21 +1,19 @@
-import { Module } from '@nestjs/common';
-import { DriversModule } from './modules/drivers/drivers.module';
-import { CustomersModule } from './modules/customers/customers.module';
-import { VehiclesModule } from './modules/vehicles/vehicles.module';
-import { OrdersModule } from './modules/orders/orders.module';
-import { RatingsModule } from './modules/ratings/ratings.module';
-import { PaymentsModule } from './modules/payments/payments.module';
-import { FinancialOperationsModule } from './modules/financial_operations/financial_operations.module';
-import { DriverVehicleModule } from './modules/driver_vehicle/driver_vehicle.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from './modules/auth/auth.module';
-import { configuration } from './config/configuration';
-import { APP_INTERCEPTOR } from '@nestjs/core';
-import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { JwtModule } from '@nestjs/jwt';
-import AuthGuard from './common/guards/auth.guard';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { configuration } from './config/configuration';
+import { AuthModule } from './modules/auth/auth.module';
+import { CustomersModule } from './modules/customers/customers.module';
+import { DriverVehicleModule } from './modules/driver_vehicle/driver_vehicle.module';
+import { DriversModule } from './modules/drivers/drivers.module';
+import { FinancialOperationsModule } from './modules/financial_operations/financial_operations.module';
+import { OrdersModule } from './modules/orders/orders.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { RatingsModule } from './modules/ratings/ratings.module';
+import { VehiclesModule } from './modules/vehicles/vehicles.module';
 @Module({
   imports: [
     ConfigModule.forRoot({

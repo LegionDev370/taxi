@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { Repository } from 'typeorm';
 import { Customer } from '../customers/entities/customer.entity';
 import { Driver } from '../drivers/entities/driver.entity';
@@ -11,7 +11,6 @@ import {
 } from './dto/create-auth.dto';
 import { RedisService } from './redis.service';
 import { ConfigService } from '@nestjs/config';
-import { Response } from 'express';
 @Injectable()
 export class AuthService {
   constructor(
