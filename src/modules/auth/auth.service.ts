@@ -37,7 +37,7 @@ export class AuthService {
     await this.redisService.setOtp(
       createAuthCustomerDto.phone_number,
       otpPassword,
-      120,
+      60,
     );
     await this.redisService.setTempUser({
       phone_number: createAuthCustomerDto.phone_number,

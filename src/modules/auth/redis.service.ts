@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
 import { generate } from 'otp-generator';
 @Injectable()
@@ -17,6 +17,10 @@ export class RedisService {
     await this.redis.setex(`user:${phone_number}`, ttl, otp);
   }
   async getOtp(key: string) {
+    return await this.redis.get(key);
+  }
+
+  async getKey(key: string) {
     return await this.redis.get(key);
   }
 
