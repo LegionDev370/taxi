@@ -16,6 +16,7 @@ import {
 import { RedisService } from './redis.service';
 import { ConfigService } from '@nestjs/config';
 import { SmsProviderService } from './sms.provider.service';
+import SmsLimiterService from './sms.limiter.service';
 @Injectable()
 export class AuthService {
   constructor(
@@ -27,6 +28,7 @@ export class AuthService {
     private redisService: RedisService,
     private configService: ConfigService,
     private readonly smsProviderService: SmsProviderService,
+    private readonly smsLimiterService: SmsLimiterService,
   ) {}
   async registerCustomer(createAuthCustomerDto: CreateAuthCustomerDto) {
     const findCustomer = await this.customerRepository.findOne({
@@ -40,28 +42,30 @@ export class AuthService {
     );
     if (findCustomer) throw new UnauthorizedException('invalid credentials');
     const otpPassword = this.redisService.generateOtpPassword();
-    try {
-      await this.smsProviderService.login();
-      const response = await this.smsProviderService.sendSms({
+    await this.smsLimiterService.sendSmsLimitChecking(
+      createAuthCustomerDto.phone_number,
+    );
+    await this.smsProviderService.login();
+    const response = await this.smsProviderService.sendSms({
+      phone_number: createAuthCustomerDto.phone_number,
+      otp: otpPassword,
+    });
+    if (response == 'waiting') {
+      await this.redisService.setOtp(
+        createAuthCustomerDto.phone_number,
+        otpPassword,
+        60,
+      );
+      await this.smsLimiterService.trackSmsRequest(
+        createAuthCustomerDto.phone_number,
+      );
+      await this.redisService.setTempUser({
         phone_number: createAuthCustomerDto.phone_number,
-        otp: otpPassword,
+        password: hashedPassword,
       });
-      if (response == 'waiting') {
-        await this.redisService.setOtp(
-          createAuthCustomerDto.phone_number,
-          otpPassword,
-          60,
-        );
-        await this.redisService.setTempUser({
-          phone_number: createAuthCustomerDto.phone_number,
-          password: hashedPassword,
-        });
-        return {
-          otp: otpPassword,
-        };
-      }
-    } catch (error) {
-      throw new HttpException(error.message, 500);
+      return {
+        otp: otpPassword,
+      };
     }
   }
 

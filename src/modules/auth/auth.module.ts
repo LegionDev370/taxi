@@ -9,6 +9,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { RedisService } from './redis.service';
 import { SmsProviderService } from './sms.provider.service';
+import SmsLimiterService from './sms.limiter.service';
 @Module({
   imports: [HttpModule, TypeOrmModule.forFeature([Customer, Driver])],
   controllers: [AuthController],
@@ -18,6 +19,7 @@ import { SmsProviderService } from './sms.provider.service';
     JwtService,
     RedisService,
     SmsProviderService,
+    SmsLimiterService,
   ],
 })
 export class AuthModule {}

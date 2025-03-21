@@ -1,19 +1,11 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  Post,
-  Req,
-  Res,
-} from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
 import {
   CreateAuthCustomerDto,
   CreateAuthDriverDto,
 } from './dto/create-auth.dto';
 import { LoginCustomerAuthDto } from './dto/login.auth.dto';
-import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {

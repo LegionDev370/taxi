@@ -24,12 +24,28 @@ export class RedisService {
     return await this.redis.get(key);
   }
 
+  async isExistsKey(key: string) {
+    return await this.redis.exists(key);
+  }
+
+  async getKeyTTL(key: string) {
+    return this.redis.ttl(key);
+  }
+
   async setTempUser(user: { phone_number: string; password: string }) {
     await this.redis.setex(
       `temp_user:${user.phone_number}`,
       100,
       JSON.stringify(user),
     );
+  }
+
+  async setIncrKey(key: string) {
+    return this.redis.incr(key);
+  }
+
+  async setExpireKey(key: string, ttl: number) {
+    this.redis.expire(key, ttl);
   }
 
   async setIncrementKey(phone_number: string) {
