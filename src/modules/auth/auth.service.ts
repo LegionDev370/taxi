@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
@@ -11,6 +15,7 @@ import {
 } from './dto/create-auth.dto';
 import { RedisService } from './redis.service';
 import { ConfigService } from '@nestjs/config';
+import { SmsProviderService } from './sms.provider.service';
 @Injectable()
 export class AuthService {
   constructor(
@@ -21,6 +26,7 @@ export class AuthService {
     private readonly driverRepository: Repository<Driver>,
     private redisService: RedisService,
     private configService: ConfigService,
+    private readonly smsProviderService: SmsProviderService,
   ) {}
   async registerCustomer(createAuthCustomerDto: CreateAuthCustomerDto) {
     const findCustomer = await this.customerRepository.findOne({
@@ -34,18 +40,29 @@ export class AuthService {
     );
     if (findCustomer) throw new UnauthorizedException('invalid credentials');
     const otpPassword = this.redisService.generateOtpPassword();
-    await this.redisService.setOtp(
-      createAuthCustomerDto.phone_number,
-      otpPassword,
-      60,
-    );
-    await this.redisService.setTempUser({
-      phone_number: createAuthCustomerDto.phone_number,
-      password: hashedPassword,
-    });
-    return {
-      otp: otpPassword,
-    };
+    try {
+      await this.smsProviderService.login();
+      const response = await this.smsProviderService.sendSms({
+        phone_number: createAuthCustomerDto.phone_number,
+        otp: otpPassword,
+      });
+      if (response == 'waiting') {
+        await this.redisService.setOtp(
+          createAuthCustomerDto.phone_number,
+          otpPassword,
+          60,
+        );
+        await this.redisService.setTempUser({
+          phone_number: createAuthCustomerDto.phone_number,
+          password: hashedPassword,
+        });
+        return {
+          otp: otpPassword,
+        };
+      }
+    } catch (error) {
+      throw new HttpException(error.message, 500);
+    }
   }
 
   async verifyOtpCustomer(phone_number: string, code: string) {

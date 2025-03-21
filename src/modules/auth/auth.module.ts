@@ -1,24 +1,23 @@
-import { Global, Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
-import { EskizService } from './eskiz.service';
 import { HttpModule } from '@nestjs/axios';
+import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Customer } from '../customers/entities/customer.entity';
 import { Driver } from '../drivers/entities/driver.entity';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
 import { RedisService } from './redis.service';
-import AuthGuard from 'src/common/guards/auth.guard';
+import { SmsProviderService } from './sms.provider.service';
 @Module({
   imports: [HttpModule, TypeOrmModule.forFeature([Customer, Driver])],
   controllers: [AuthController],
   providers: [
     AuthService,
-    EskizService,
     ConfigService,
     JwtService,
     RedisService,
+    SmsProviderService,
   ],
 })
 export class AuthModule {}
