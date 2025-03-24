@@ -16,10 +16,10 @@ class AuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const token = request.cookies['token'];
     try {
-      const data = this.jwtService.verify(token, {
+      const { user_id } = this.jwtService.verify(token, {
         secret: this.configService.get('JWT_SECRET_KEY'),
       });
-      request.userId = data;
+      request.userId = user_id;
       return true;
     } catch (error) {
       console.log(error);

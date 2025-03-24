@@ -32,6 +32,7 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
         database: configService.get('DATABASE_NAME'),
         synchronize: true,
         autoLoadEntities: true,
+        logging: true,
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
       }),
       inject: [ConfigService],

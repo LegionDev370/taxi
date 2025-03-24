@@ -1,5 +1,5 @@
 import { MailerService } from '@nestjs-modules/mailer';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Customer } from './entities/customer.entity';
 import { Repository } from 'typeorm';
@@ -15,13 +15,31 @@ export class CustomersService {
   ) {}
   async sendMailVerificationCode(userId: number) {
     const customer = await this.customerRespository.findOne({
-      where: { id: +userId },
+      where: { id: userId },
     });
     if (!customer?.email) throw new BadRequestException('email invalid');
+    const link = await this.redisService.sendEmailVerificationCode(
+      customer.email,
+    );
     await this.mailService.sendMail({
       to: `${customer?.email}`,
       subject: `How to Send Emails with Nodemailer`,
-      text: 'Salom',
+      text: link,
     });
+    return {
+      message: 'verification code email sended',
+    };
+  }
+  async verifyEmail(token: string) {
+    const tokenKey = `verification-email:${token}`;
+    const email = await this.redisService.getKey(tokenKey);
+    if (!email) throw new HttpException('email verification link expired', 410);
+    const user = JSON.parse(email as string);
+    await this.customerRespository.update(
+      { email: user.email },
+      { is_email_verified: true },
+    );
+    await this.redisService.delKey(tokenKey);
+    await this.redisService.delKey(`email-tokens:${user.email}`);
   }
 }

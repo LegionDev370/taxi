@@ -9,7 +9,7 @@ class SmsLimiterService {
     const hourly = await this.redisService.isExistsKey(keyHourly);
     if (hourly) {
       const count: string | null = await this.redisService.getKey(keyHourly);
-      if (Number(count) >= 2) {
+      if (Number(count) >= 20) {
         throw new HttpException(
           'sizda soatlik limit tugadi!!',
           HttpStatus.TOO_MANY_REQUESTS,

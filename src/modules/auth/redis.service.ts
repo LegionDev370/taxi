@@ -1,9 +1,10 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
 import { generate } from 'otp-generator';
 @Injectable()
 export class RedisService {
   redis: Redis;
+
   constructor() {
     this.redis = new Redis({
       port: process.env.REDIS_PORT
@@ -61,6 +62,10 @@ export class RedisService {
     await this.redis.del(`temp_user:${key}`);
   }
 
+  async delKey(key: string) {
+    await this.redis.del(key);
+  }
+
   generateOtpPassword() {
     const password = generate(4, {
       digits: true,
@@ -69,5 +74,23 @@ export class RedisService {
       upperCaseAlphabets: false,
     });
     return password;
+  }
+  async sendEmailVerificationCode(email: string) {
+    const randomUuid = crypto.randomUUID();
+    const emailTokenKey = `email-tokens:${email}`;
+    const verificationKey = `verification-email:${randomUuid}`;
+    const code = this.generateOtpPassword();
+    const getOldToken = await this.redis.get(emailTokenKey);
+    if (getOldToken) {
+      await this.redis.del(`verification-email:${getOldToken}`);
+    }
+    await this.redis.setex(
+      verificationKey,
+      3600,
+      JSON.stringify({ email, code: code }),
+    );
+    await this.redis.setex(emailTokenKey, 3600, randomUuid);
+    const link = `http://localhost:4000/api/customers/verify/email?token=${randomUuid}`;
+    return link;
   }
 }

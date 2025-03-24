@@ -93,8 +93,8 @@ export class AuthService {
       { user_id: customer.id },
       { expiresIn: '2h', secret: this.configService.get('JWT_SECRET_KEY') },
     );
-    this.redisService.delOtp(phone_number);
-    this.redisService.delTempUser(phone_number);
+    await this.redisService.delOtp(phone_number);
+    await this.redisService.delTempUser(phone_number);
     return {
       token,
     };

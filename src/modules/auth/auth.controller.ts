@@ -11,13 +11,23 @@ import { LoginCustomerAuthDto } from './dto/login.auth.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
   @Post('customer/register')
-  @HttpCode(200)
-  registerCustomer(@Body() createAuthCustomerDto: CreateAuthCustomerDto) {
-    return this.authService.registerCustomer(createAuthCustomerDto);
+  @HttpCode(201)
+  async registerCustomer(@Body() createAuthCustomerDto: CreateAuthCustomerDto) {
+    return await this.authService.registerCustomer(createAuthCustomerDto);
   }
   @Post('/verify/code')
-  verifyCode(@Body() body: { phone_number: string; code: string }) {
-    return this.authService.verifyOtpCustomer(body.phone_number, body.code);
+  @HttpCode(200)
+  async verifyCode(
+    @Body() body: { phone_number: string; code: string },
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const token = await this.authService.verifyOtpCustomer(
+      body.phone_number,
+      body.code,
+    );
+    res.cookie('token', token, {
+      httpOnly: true,
+    });
   }
   @Post('driver/register')
   registerDriver(@Body() createAuthDriverDto: CreateAuthDriverDto) {
