@@ -11,13 +11,13 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:
-     postgres:
+      postgres:
         condition: service_healthy
-     redis:
-        condition: service_started
+      redis:
+        condition: service_healthy
     networks:
       - nestjs-network
-
+  
   postgres:
     image: postgres:16-alpine
     ports:
@@ -33,9 +33,10 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_NAME}"]
       interval: 5s
-      timeout: 3s
+      timeout: 5s
       retries: 5
-
+      start_period: 10s
+  
   redis:
     image: redis:7.2-alpine
     ports:
@@ -45,6 +46,12 @@ services:
       - redis_data:/data
     networks:
       - nestjs-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "3322", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 volumes:
   postgres_data:
